@@ -28,7 +28,6 @@ connection.on( 'connected', function(){
 //   });
 
 
-
 });
 connection.on( 'disconnected', function(){
     console.log( 'disconnected from db' );

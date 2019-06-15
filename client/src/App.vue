@@ -3,13 +3,18 @@
 
     <Loader :message="statusMessage" ></Loader>
 
-    <canvas id="myChart" width="400" height="400">chart here</canvas>
-
-    <div v-for="item in departmentStats" >
-      <input type="checkbox" name="filter" :value="item.department"  checked>
-      <label> {{ item.department}} </label>
+    <div>
+      <div v-for="item in departmentStats" >
+        <label> {{ item.department}} </label>
+        <input type="checkbox" name="filter" :value="item.department"  checked>
+      </div>
     </div>
     <button v-if="departmentStats" @click="updateFilter()">Update</button>
+
+    <canvas id="salaryChart" width="400" height="400"></canvas>
+    <canvas id="employeeChart" width="400" height="400"></canvas>
+    <BarGraph :json="graphJSON" :test="statusMessage"></BarGraph>
+ 
 
   </div>
 </template>
@@ -20,6 +25,7 @@ import Axios from 'axios';
 import Chart from 'chart.js';
 
 import Loader from './components/Loader.vue';
+import BarGraph from './components/BarGraph'
 
 export default {
   name: 'app',
@@ -28,11 +34,12 @@ export default {
       rawData: Array,
       filtered: Array,
       departmentStats: Array, // { department: "sales", totalEmployees: 10, totalSalary: 10000 }
-      statsJSON: String
+      graphJSON: String
       },
 
   components: {
-    Loader
+    Loader,
+    BarGraph
   },
 
   created(){ 
@@ -41,7 +48,7 @@ export default {
   },
 
   updated(){
-    console.log( '=== APP UPDATED===' );
+    // console.log( '=== APP UPDATED===' );
     this.updateFilter();
   },
 
@@ -60,7 +67,7 @@ export default {
       Axios.get( backendURL , { headers } )
           .then( response => {
             this.statusMessage = "";
-            console.log( "axios response ", response.data );
+            // console.log( "axios response ", response.data );
             this.rawData = response.data;
             this.createDepartmentStats();
           })
@@ -87,9 +94,7 @@ export default {
         } );
 
         // sort once
-        groupedData.sort( ( a, b ) =>
-              b.totalSalary/b.totalEmployees - a.totalSalary/a.totalEmployees
-            );
+        groupedData.sort( ( a, b ) => b.totalSalary/b.totalEmployees - a.totalSalary/a.totalEmployees );
         this.departmentStats = groupedData;
 
     },
@@ -100,25 +105,35 @@ export default {
         const nodes = document.querySelectorAll( ['input:checked'] );
         const checked = Array.from( nodes ).map( node => node.value );
         this.filtered = this.departmentStats.filter( item => checked.includes( item.department ) );
-        console.log( 'filtered stats', JSON.stringify( this.filtered ) );
+        // console.log( 'filtered stats', JSON.stringify( this.filtered ) );
 
-        this.drawChart();
+        this.drawSalaryChart();
+        this.drawEmployeesChart();
+        // const graph2data = this.filtered.map( item => {
+        //     return { department: item.department, employees: item.totalEmployees };
+        // } );
+        // this.graphJSON = JSON.stringify( graph2data );
+        //         console.log( 'graph2 data ', this.graphJSON );
+
 
     },
 
-    drawChart(){           
+    drawSalaryChart(){           
 
-          var ctx = document.getElementById('myChart');
+          var ctx = document.getElementById( 'salaryChart' );
           var myChart = new Chart(ctx, {
           type: 'bar',
           data: {
               labels: this.filtered.map(  item => {
                   return item.department + ' (' + item.totalEmployees + ')';
               } ),
-              datasets: [{
+              datasets: [               
+                
+                {
                   label: '#AVERAGE SALARY €',
                   data: this.filtered.map(  item => item.totalSalary/item.totalEmployees ),
-                  backgroundColor: [ // fix this
+                  backgroundColor: 
+                  [ // fix this
                       'rgba(255, 99, 132, 0.2)',
                       'rgba(54, 162, 235, 0.2)',
                       'rgba(255, 206, 86, 0.2)',
@@ -135,15 +150,15 @@ export default {
                       'rgba(255, 159, 64, 1)'
                   ],
                   borderWidth: 1
-              }
-              
-              
+              },
+
               ]
           },
           options: {
               tooltips: {
                   callbacks: {
                     label: function( tooltipItem, data ){
+                      // console.log( data );
                       return '#average salary: ' + Math.round( tooltipItem.yLabel * 100 ) / 100;
                     } 
                   }
@@ -157,10 +172,66 @@ export default {
                   }]
               }
           }
+
+
+
+
+      });
+      },
+
+
+        drawEmployeesChart(){           
+
+          var ctx = document.getElementById( 'employeeChart' );
+          var myChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+              labels: this.filtered.map(  item => {
+                  return item.department;
+              } ),
+              datasets: [               
+                
+                {
+                  label: '#NUMBER OF EMPLOYEES',
+                  data: this.filtered.map(  item => item.totalEmployees ),
+                  backgroundColor: 
+                  [ // fix this
+                      'rgba(255, 99, 132, 0.2)',
+                      'rgba(54, 162, 235, 0.2)',
+                      'rgba(255, 206, 86, 0.2)',
+                      'rgba(75, 192, 192, 0.2)',
+                      'rgba(153, 102, 255, 0.2)',
+                      'rgba(255, 159, 64, 0.2)'
+                  ],
+                  borderColor: [
+                      'rgba(255, 99, 132, 1)',
+                      'rgba(54, 162, 235, 1)',
+                      'rgba(255, 206, 86, 1)',
+                      'rgba(75, 192, 192, 1)',
+                      'rgba(153, 102, 255, 1)',
+                      'rgba(255, 159, 64, 1)'
+                  ],
+                  borderWidth: 1
+              },
+
+              ]
+          },
+          options: {
+              scales: {
+                  yAxes: [{
+                      ticks: {
+                          beginAtZero: true
+                      }
+                  }]
+              }
+          }
+          
+
+
       });
       }
-
   }
+  
 
 }
 </script>
@@ -174,4 +245,14 @@ export default {
   color: #2c3e50;
   margin-top: 60px;
 }
+
+#filters-container{
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.filter{
+  margin: 10px 20px;
+}
+
 </style>
