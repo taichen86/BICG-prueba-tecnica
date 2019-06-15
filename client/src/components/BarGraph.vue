@@ -15,22 +15,20 @@ export default {
 
     name: 'BarGraph',
     props: {
-        json: String,
         data: Array,
         test: String
     },
 
     created(){
-        console.log( 'created' , json );
+        console.log( 'created'  );
     },
 
     mounted(){
-        console.log( 'departmentschart mounted', json ) ;
+        console.log( ' mounted' ) ;
     },
 
     updated(){
-        console.log( 'graph 2 updated', json );
-        this.data = JSON.parse( json );
+        console.log( 'graph 2 updated' );
     },
 
     methods: {

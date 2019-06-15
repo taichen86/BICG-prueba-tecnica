@@ -13,7 +13,8 @@
 
     <canvas id="salaryChart" width="400" height="400"></canvas>
     <canvas id="employeeChart" width="400" height="400"></canvas>
-    <BarGraph :json="graphJSON" :test="statusMessage"></BarGraph>
+
+    <!-- <BarGraph :json="graphJSON" :test="statusMessage"></BarGraph> -->
  
 
   </div>
@@ -34,8 +35,8 @@ export default {
       rawData: Array,
       filtered: Array,
       departmentStats: Array, // { department: "sales", totalEmployees: 10, totalSalary: 10000 }
-      graphJSON: String
-      },
+      colors: Array
+  },
 
   components: {
     Loader,
@@ -45,11 +46,11 @@ export default {
   created(){ 
     this.statusMessage = "initializing..."
     this.getData();
+    this.initializeProps();
   },
 
   updated(){
-    // console.log( '=== APP UPDATED===' );
-    this.updateFilter();
+    this.updateFilter();  
   },
 
 
@@ -93,8 +94,6 @@ export default {
             }
         } );
 
-        // sort once
-        groupedData.sort( ( a, b ) => b.totalSalary/b.totalEmployees - a.totalSalary/a.totalEmployees );
         this.departmentStats = groupedData;
 
     },
@@ -109,16 +108,14 @@ export default {
 
         this.drawSalaryChart();
         this.drawEmployeesChart();
-        // const graph2data = this.filtered.map( item => {
-        //     return { department: item.department, employees: item.totalEmployees };
-        // } );
-        // this.graphJSON = JSON.stringify( graph2data );
-        //         console.log( 'graph2 data ', this.graphJSON );
-
 
     },
 
+    // TODO: put in component
     drawSalaryChart(){           
+
+          // sort
+          let sorted = this.filtered.sort( ( a, b ) => b.totalSalary/b.totalEmployees - a.totalSalary/a.totalEmployees );
 
           var ctx = document.getElementById( 'salaryChart' );
           var myChart = new Chart(ctx, {
@@ -128,27 +125,11 @@ export default {
                   return item.department + ' (' + item.totalEmployees + ')';
               } ),
               datasets: [               
-                
                 {
                   label: '#AVERAGE SALARY €',
                   data: this.filtered.map(  item => item.totalSalary/item.totalEmployees ),
-                  backgroundColor: 
-                  [ // fix this
-                      'rgba(255, 99, 132, 0.2)',
-                      'rgba(54, 162, 235, 0.2)',
-                      'rgba(255, 206, 86, 0.2)',
-                      'rgba(75, 192, 192, 0.2)',
-                      'rgba(153, 102, 255, 0.2)',
-                      'rgba(255, 159, 64, 0.2)'
-                  ],
-                  borderColor: [
-                      'rgba(255, 99, 132, 1)',
-                      'rgba(54, 162, 235, 1)',
-                      'rgba(255, 206, 86, 1)',
-                      'rgba(75, 192, 192, 1)',
-                      'rgba(153, 102, 255, 1)',
-                      'rgba(255, 159, 64, 1)'
-                  ],
+                  backgroundColor: this.getColors( sorted.length, 0.2 ),
+                  borderColor: this.getColors( sorted.length, 1 ),
                   borderWidth: 1
               },
 
@@ -173,63 +154,66 @@ export default {
               }
           }
 
-
-
-
       });
       },
 
 
-        drawEmployeesChart(){           
+    drawEmployeesChart(){           
 
-          var ctx = document.getElementById( 'employeeChart' );
-          var myChart = new Chart(ctx, {
-          type: 'bar',
-          data: {
-              labels: this.filtered.map(  item => {
-                  return item.department;
-              } ),
-              datasets: [               
-                
-                {
-                  label: '#NUMBER OF EMPLOYEES',
-                  data: this.filtered.map(  item => item.totalEmployees ),
-                  backgroundColor: 
-                  [ // fix this
-                      'rgba(255, 99, 132, 0.2)',
-                      'rgba(54, 162, 235, 0.2)',
-                      'rgba(255, 206, 86, 0.2)',
-                      'rgba(75, 192, 192, 0.2)',
-                      'rgba(153, 102, 255, 0.2)',
-                      'rgba(255, 159, 64, 0.2)'
-                  ],
-                  borderColor: [
-                      'rgba(255, 99, 132, 1)',
-                      'rgba(54, 162, 235, 1)',
-                      'rgba(255, 206, 86, 1)',
-                      'rgba(75, 192, 192, 1)',
-                      'rgba(153, 102, 255, 1)',
-                      'rgba(255, 159, 64, 1)'
-                  ],
-                  borderWidth: 1
-              },
+      // sort
+      let sorted = this.filtered.sort( ( a, b ) => b.totalEmployees - a.totalEmployees );
 
-              ]
+      var ctx = document.getElementById( 'employeeChart' );
+      var myChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+          labels: this.filtered.map(  item => {
+              return item.department;
+          } ),
+          datasets: [               
+            {
+              label: '#NUMBER OF EMPLOYEES',
+              data: this.filtered.map(  item => item.totalEmployees ),
+              backgroundColor: this.getColors( sorted.length, 0.2 ),
+              borderColor: this.getColors( sorted.length, 1 ),
+              borderWidth: 1
           },
-          options: {
-              scales: {
-                  yAxes: [{
-                      ticks: {
-                          beginAtZero: true
-                      }
-                  }]
-              }
-          }
-          
 
+          ]
+        },
+        options: {
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true
+                    }
+                }]
+            }
+        }
 
       });
+    },
+
+    getColors( num , alpha ){
+        let colors = [];
+        let i = 0;
+        while( i < num ){
+          colors.push( this.colors[ i%this.colors.length ].replace( '0.2', alpha ) );  
+          i++;
+        }
+        return colors;
+      },
+
+      initializeProps(){
+        this.colors = [   'rgba(255, 99, 132, 0.2)',
+                  'rgba(54, 162, 235, 0.2)',
+                  'rgba(255, 206, 86, 0.2)',
+                  'rgba(75, 192, 192, 0.2)',
+                  'rgba(153, 102, 255, 0.2)',
+                  'rgba(255, 159, 64, 0.2)' ];
       }
+
+
   }
   
 
@@ -244,15 +228,6 @@ export default {
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
-}
-
-#filters-container{
-  display: flex;
-  flex-wrap: wrap;
-}
-
-.filter{
-  margin: 10px 20px;
 }
 
 </style>
