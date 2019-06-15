@@ -100,7 +100,6 @@ export default {
 
     updateFilter(){
 
-        // console.log( '=== update filter' );
         const nodes = document.querySelectorAll( ['input:checked'] );
         const checked = Array.from( nodes ).map( node => node.value );
         this.filtered = this.departmentStats.filter( item => checked.includes( item.department ) );
@@ -205,12 +204,12 @@ export default {
       },
 
       initializeProps(){
-        this.colors = [   'rgba(255, 99, 132, 0.2)',
-                  'rgba(54, 162, 235, 0.2)',
-                  'rgba(255, 206, 86, 0.2)',
-                  'rgba(75, 192, 192, 0.2)',
-                  'rgba(153, 102, 255, 0.2)',
-                  'rgba(255, 159, 64, 0.2)' ];
+        this.colors = [ 'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)' ];
       }
 
 
@@ -227,6 +226,10 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
+  margin-top: 60px;
+}
+
+#salaryChart{
   margin-top: 60px;
 }
 
