@@ -15,11 +15,10 @@
 </template>
 
 <script>
-// import HelloWorld from './components/HelloWorld.vue'
+
 import Axios from 'axios';
 import Chart from 'chart.js';
 
-// import DepartmentsChart from './components/DepartmentsChart.vue';
 import Loader from './components/Loader.vue';
 
 export default {
@@ -33,7 +32,6 @@ export default {
       },
 
   components: {
-    // DepartmentsChart,
     Loader
   },
 
@@ -118,7 +116,7 @@ export default {
                   return item.department + ' (' + item.totalEmployees + ')';
               } ),
               datasets: [{
-                  label: '#average salary',
+                  label: '#AVERAGE SALARY €',
                   data: this.filtered.map(  item => item.totalSalary/item.totalEmployees ),
                   backgroundColor: [ // fix this
                       'rgba(255, 99, 132, 0.2)',
@@ -143,6 +141,13 @@ export default {
               ]
           },
           options: {
+              tooltips: {
+                  callbacks: {
+                    label: function( tooltipItem, data ){
+                      return '#average salary: ' + Math.round( tooltipItem.yLabel * 100 ) / 100;
+                    } 
+                  }
+              },
 
               scales: {
                   yAxes: [{
